@@ -1,0 +1,29 @@
+#!/bin/bash
+echo "Run Fast Api app ...."
+
+{% if git_repo_url and git_repo_url | trim %}
+# Fetching the latest version tag from the remote Git repository
+echo "Checking remote repository for version tags..."
+VERSION_TAG=$(git ls-remote --tags {{ git_repo_url }} \
+    | grep -o "refs/tags/[^{}]*$" \
+    | sed "s/refs\\/tags\\///" \
+    | sort -V \
+    | tail -n1)
+
+# Omit exporting if the fetched string is completely empty
+if [ -n "$VERSION_TAG" ]; then
+    echo "VERSION_TAG=${VERSION_TAG}"
+    echo "Building with VERSION_TAG=${VERSION_TAG}"
+    export VERSION_TAG=${VERSION_TAG}
+else
+    echo "No git tags found. Omitting VERSION_TAG export."
+fi
+{% endif %}
+
+# Gunicorn now runs unconditionally regardless of the Git block above
+exec gunicorn --bind :{{ app_port | default(8000) }} \
+         --workers {{ gunicorn_workers | default(5) }} \
+         {{ app_module | default('app:app') }} \
+         --worker-class {{ worker_class | default('uvicorn.workers.UvicornH11Worker') }} \
+         --timeout {{ gunicorn_timeout | default(1200) }} \
+         --log-level={{ log_level | default('info') }}

@@ -1,0 +1,34 @@
+import pytest
+from httpx import AsyncClient, ASGITransport
+from app.main import app
+
+@pytest.fixture
+async def client():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url='http://test'
+    ) as ac:
+        yield ac
+
+
+
+{% for ep in endpoints %}     
+# Tag: {{ tag }} — Summary: {{ ep.summary }} - Function: {{ ep.name }} - 
+# Status Code: {{ ep.status_code }}
+@pytest.mark.anyio
+async def test_{{ ep.name }}(client: AsyncClient) -> None:
+    # Arrange
+    url = '{{ ep.test_url }}'
+    {% if ep.request_schema %}
+    payload = {}  # TODO: fill with valid {{ ep.request_schema }} data
+
+    # Act
+    response = await client.{{ ep.method | lower }}(url, json=payload)
+    {% else %}
+    # Act
+    response = await client.{{ ep.method | lower }}(url)
+    {% endif %}
+
+    # Assert
+    assert response.status_code == {{ ep.status_code }}
+
+{% endfor %}

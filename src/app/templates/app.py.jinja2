@@ -1,0 +1,58 @@
+from fastapi import FastAPI
+from fastapi import FastAPI, status
+from fastapi.openapi.utils import get_openapi
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
+{% for router in routers %}
+from routers.{{ router.name|snake }} import router as {{ router.name|snake }}_router
+{% endfor %}
+
+app = FastAPI(
+    title="{{ name }}",
+    description="{{ description }}",
+    version="{{ version }}"
+)
+
+{% for router in routers %}
+app.include_router({{ router.name|snake }}_router)
+{% endfor %}
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    return RedirectResponse(url="/docs", status_code=302)
+
+@app.get("/health")
+async def health() -> dict:
+    return {"status": "ok"}
+
+
+def custom_openapi():
+    """_summary_
+
+    Returns:
+        _type_: _description_
+    """
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="{{ name }}",
+        version = "{{ version }}",
+        description="OpenAPI schema for {{ description }}",
+        routes=app.routes,
+        contact={
+            "name": "{{ name }}",
+            "url": "{{ url }}",
+            "email": "{{ email }}",
+        },
+        license_info={
+            "name": "MIT License ",
+            "url": "https://opensource.org/licenses/MIT",
+        },
+    )
+    openapi_schema["info"]["x-logo"] = {"url": "/static/logo.png"}
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi

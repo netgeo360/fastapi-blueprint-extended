@@ -1,0 +1,35 @@
+from __future__ import annotations
+from pydantic import BaseModel, EmailStr, Field,model_validator,ConfigDict
+from datetime import datetime
+from typing import Optional
+
+{% for schema in schemas %}
+class {{ schema.name }}(BaseModel):
+{% for field in schema.fields %}
+{% set ftype = field.type %}
+{% if not field.required and field.default is none and "Optional" not in ftype %}
+{% set ftype = ftype + " | None" %}
+{% endif %}
+{% set parts = [] %}
+{% if field.constraints or field.default is not none or not field.required %}
+{% if field.default is not none %}
+{% do parts.append("default=" + field.default | repr) %}
+{% elif not field.required %}
+{% do parts.append("default=None") %}
+{% endif %}
+{% for k, v in field.constraints.items() %}
+{% do parts.append(k + "=" + v | string) %}
+{% endfor %}
+{% endif %}
+{% if parts %}
+    {{ field.name }}: {{ ftype }} = Field({{ parts | join(', ') }})
+{% else %}
+    {{ field.name }}: {{ ftype }}
+{% endif %}
+{% endfor %}
+{% if schema.from_attributes %}
+    model_config = ConfigDict(from_attributes=True,arbitrary_types_allowed=True,
+    protected_namespaces=())
+{% endif %}
+
+{% endfor %}

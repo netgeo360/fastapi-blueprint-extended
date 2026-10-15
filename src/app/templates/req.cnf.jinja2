@@ -1,0 +1,17 @@
+[req]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+
+[v3_req]
+subjectAltName = @alt_names
+
+[alt_names]
+{% for ip in sans_ips -%}
+IP.{{ loop.index }} = {{ ip }}
+{% endfor -%}
+{% for dns in sans_dns -%}
+DNS.{{ loop.index }} = {{ dns }}
+{% endfor -%}

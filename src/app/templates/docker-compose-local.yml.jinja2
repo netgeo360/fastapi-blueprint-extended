@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  {{ app_name }}_web:
+    build:
+      context: ./app/
+      dockerfile: Dockerfile.local
+    container_name: {{ app_name }}_web
+    {# env_file:
+      - config/config_local.env
+      - config/config_security.env #}
+    ports:
+      - "{{ port_web_external }}:{{ port_web_internal }}"
+    networks:
+      {{docker_network_name}}:
+        ipv4_address: {{app_name_web_ip}}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:{{ port_web_internal }}/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    labels:
+      {{ app_name }}.api.local: "web"
+    tty: true
+
+  {{ app_name }}_nginx:
+    build: ./nginx/local/
+    container_name: {{ app_name }}_nginx
+    ports:
+      - "{{ port_nginx_external }}:{{ port_nginx_internal }}"
+    depends_on:
+      - {{ app_name }}_web
+    networks:
+      {{docker_network_name}}:
+        ipv4_address: {{app_name_nginx_ip}}
+    labels:
+      {{ app_name }}.api.local: "nginx"
+    tty: true
+
+
+
+networks:
+  {{docker_network_name}}:
+    external: true
+    name: {{docker_network_name}}

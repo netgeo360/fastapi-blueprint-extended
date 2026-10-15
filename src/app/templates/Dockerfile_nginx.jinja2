@@ -1,0 +1,14 @@
+# ── Builder ───────────────────────────────────────────────────────────
+FROM {{ base_image }}
+
+COPY req.cnf /etc/nginx/
+
+RUN rm /etc/nginx/conf.d/default.conf && ln -sf /usr/share/zoneinfo/{{ timezone }} /etc/localtime && dpkg-reconfigure -fnoninteractive tzdata && openssl req -x509 -nodes -days 100000 \
+    -subj  "/C=CA/ST=QC/O={{o_value}}/CN={{cn_value}}/OU={{ou_value}}" \
+    -newkey rsa:2048 -keyout /etc/nginx/server.key \
+    -out /etc/nginx/server.crt \
+    -config /etc/nginx/req.cnf -sha256;
+
+COPY nginx.conf /etc/nginx/conf.d/
+
+EXPOSE {{ nginx_internal_port }}

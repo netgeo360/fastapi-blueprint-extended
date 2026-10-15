@@ -1,0 +1,14 @@
+# Configuration parameters injected via Jinja
+DOCKER_NETWORK_NAME := {{ docker_network_name}}
+SUBNET          := {{ docker_subnet}}
+DOCKER_COMPOSE_BASE_FILE    := docker-compose-local.yml
+
+
+local:
+	docker network create --driver=bridge --subnet=$(SUBNET) $(DOCKER_NETWORK_NAME) || docker-compose -f $(DOCKER_COMPOSE_BASE_FILE) down && docker-compose -f $(DOCKER_COMPOSE_BASE_FILE) up --build
+
+prune:
+	docker-compose -f $(DOCKER_COMPOSE_BASE_FILE) down --rmi local -v
+
+stop:
+	docker-compose -f $(DOCKER_COMPOSE_BASE_FILE) down
