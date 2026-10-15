@@ -1,0 +1,21 @@
+fastapi>={{ versions.fastapi }}
+uvicorn[standard]>={{ versions.uvicorn }}
+pydantic[email]>={{ versions.pydantic }}
+httpx>={{ versions.httpx }}
+gunicorn=={{ versions.gunicorn }}
+
+{% if database == "postgresql" %}
+# Database: PostgreSQL
+sqlalchemy[asyncio]>={{ versions.sqlalchemy }}
+asyncpg>={{ versions.asyncpg }}
+alembic>={{ versions.alembic }}
+{% elif database == "sqlite" %}
+# Database: SQLite
+sqlalchemy[asyncio]>={{ versions.sqlalchemy }}
+aiosqlite>={{ versions.aiosqlite }}
+{% endif %}
+
+# dev
+pytest>={{ versions.pytest }}
+pytest-asyncio>={{ versions.pytest_asyncio }}
+pytest-cov>={{ versions.pytest_cov }}

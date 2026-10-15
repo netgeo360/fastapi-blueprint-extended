@@ -1,0 +1,36 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPBearer
+{% for schema in schemas %}
+from schemas import {{ schema.name }}
+{% endfor %}
+
+router = APIRouter(prefix="{{ router.prefix }}", tags=["{{ router.tag }}"])
+security = HTTPBearer()
+
+{% for ep in endpoints %}
+@router.{{ ep.method | lower }}(
+    "{{ ep.path }}",
+    {% if ep.response_schema %}
+    response_model={{ ep.response_schema }},
+    {% endif %}
+    status_code={{ ep.status_code }},
+    summary="{{ ep.summary }}",
+)
+async def {{ ep.name }}(
+    {% for pp in ep.path_params %}
+    {{ pp.name }}: {{ pp.type }},
+    {% endfor %}
+    {% for qp in ep.query_params %}
+    {{ qp.name }}: {{ qp.type }} = {{ qp.default | repr if qp.default is not none else 'None' }},
+    {% endfor %}
+    {% if ep.request_schema %}
+    payload: {{ ep.request_schema }},
+    {% endif %}
+    {% if ep.auth %}
+    token: str = Depends(security),
+    {% endif %}
+):
+    """{{ ep.summary }}"""
+    raise HTTPException(status_code=501, detail='Not implemented')
+
+{% endfor %}

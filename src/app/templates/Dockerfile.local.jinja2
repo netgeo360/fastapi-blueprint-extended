@@ -1,0 +1,35 @@
+# ── Builder ───────────────────────────────────────────────────────────
+FROM {{ base_image }} AS base
+
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends gcc curl python3-dev libaio1 wget unzip build-essential postgresql libpq-dev \
+    uwsgi-plugin-python3 gcc iputils-ping jq git && \
+    ln -fs /usr/share/zoneinfo/{{ timezone }} /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata && \
+    rm -rf /var/lib/apt/lists/*
+    
+# ── Builder ───────────────────────────────────────────────────────────
+FROM base AS builder
+
+RUN mkdir /install
+WORKDIR /install
+
+COPY requirements.txt /requirements.txt
+
+RUN pip install --upgrade pip && \
+    pip install -r /requirements.txt --root /install/ --prefer-binary --no-warn-script-location
+
+# ── Runtime ───────────────────────────────────────────────────────────
+
+FROM base
+
+
+COPY --from=builder /install /install
+COPY . /app
+
+RUN cp -r /install/usr/local/bin/* /usr/local/bin/ && \
+    cp -r /install/usr/local/lib/{{ python_version }}/site-packages/* /usr/local/lib/{{ python_version }}/site-packages
+
+WORKDIR /app
+
+ENTRYPOINT ["/bin/bash" , "/app/entrypoint.sh"]
