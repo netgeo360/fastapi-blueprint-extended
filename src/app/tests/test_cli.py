@@ -34,7 +34,7 @@ def test_main_exits_when_output_dir_exists_without_force(tmp_path):
         assert exit_wrapper.value.code == 1
 
 
-@patch("app.run.Generator")
+@patch("app.cli.Generator")
 def test_main_success_flow_with_force_override(mock_generator_class, tmp_path):
     spec_path = tmp_path / "spec.yaml"
     spec_path.touch()
