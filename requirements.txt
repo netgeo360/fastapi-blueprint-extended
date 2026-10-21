@@ -1,4 +1,4 @@
-# ── fastapi-blueprint — CLI tool dependencies ──────────────────────────────
+# ── fastapi-blueprint-extended— CLI tool dependencies ──────────────────────────────
 # Requires Python 3.12+
 # Generates FastAPI projects targeting Python 3.12
 

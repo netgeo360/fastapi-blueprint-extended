@@ -270,33 +270,44 @@ class EntrypointShellSpec(BaseModel):
 
 
 class MakefileSpec(BaseModel):
-    """Configuration for generating the project Makefile with dynamic \
-    network infrastructure."""
+    """Configuration for generating the project Makefile\
+    with dynamic network infrastructure."""
 
-    docker_network_name: str = Field(default="local_sandbox")
+    docker_network_name: str = Field(default="company_secure_sandbox")
     docker_subnet: str = Field(default="172.27.0.0/26")
+    docker_gateway_ip: IPv4Address = Field(default=IPv4Address("172.27.0.1"))
     generate_ips_count: int = Field(
-        default=2, ge=1, description="Number of sequential host IPs to generate."
+        default=2,
+        ge=1,
+        description="Number of container IPs to generate, excluding the gateway.",
     )
+
     _network: IPv4Network = PrivateAttr()
 
     @model_validator(mode="after")
     def validate_and_parse_network(self) -> MakefileSpec:
-        """Enforces a strict Parse, Don't Validate pattern for the network block."""
         try:
-            object.__setattr__(
-                self, "_network", IPv4Network(self.docker_subnet, strict=True)
-            )
+            network = IPv4Network(self.docker_subnet, strict=True)
         except ValueError as e:
             raise ValueError(
                 f"Invalid CIDR configuration for docker_subnet: {e}"
             ) from e
 
-        total_usable_hosts = len(list(self._network.hosts())) - 1
-        if total_usable_hosts < self.generate_ips_count:
+        if self.docker_gateway_ip not in network:
             raise ValueError(
-                f"Subnet {self.docker_subnet} only offers {total_usable_hosts} usable \
-                container IPs (excluding gateway), "
+                f"Gateway {self.docker_gateway_ip} is outside subnet {network}."
+            )
+
+        object.__setattr__(self, "_network", network)
+
+        available_hosts = sum(
+            1 for ip in network.hosts() if ip != self.docker_gateway_ip
+        )
+
+        if available_hosts < self.generate_ips_count:
+            raise ValueError(
+                f"Subnet {network} provides only {available_hosts} container IPs "
+                f"after excluding gateway {self.docker_gateway_ip}, "
                 f"but {self.generate_ips_count} were requested."
             )
 
@@ -304,10 +315,11 @@ class MakefileSpec(BaseModel):
 
     @cached_property
     def generated_ips(self) -> list[IPv4Address]:
-        """Dynamically slices the network hosts, skipping the host gateway IP."""
-        hosts_iterator = self._network.hosts()
-
-        return [next(hosts_iterator) for _ in range(self.generate_ips_count)]
+        """Generate container IPs,\
+        excluding the configured gateway."""
+        return [ip for ip in self._network.hosts() if ip != self.docker_gateway_ip][
+            : self.generate_ips_count
+        ]
 
     @property
     def app_name_web_ip(self) -> IPv4Address:
@@ -325,7 +337,9 @@ class MakefileSpec(BaseModel):
         return data
 
     model_config = ConfigDict(
-        frozen=True, arbitrary_types_allowed=True, protected_namespaces=()
+        frozen=True,
+        arbitrary_types_allowed=True,
+        protected_namespaces=(),
     )
 
 

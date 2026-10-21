@@ -16,3 +16,16 @@ ignore = []
 
 [tool.ruff.format]
 quote-style = "double"
+
+[project]
+name = "fastapi-blueprint-extended"
+version = "0.1.0"
+
+[project.scripts]
+fastapi-blueprint-extended = "app.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

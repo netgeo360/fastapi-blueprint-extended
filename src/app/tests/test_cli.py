@@ -4,16 +4,16 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import app.run as run
+import app.cli as cli
 
 
 def test_main_exits_when_spec_file_missing():
-    test_args = ["run.py", "--spec", "non_existent_spec.yaml", "--output", "./out"]
+    test_args = ["cli.py", "--spec", "non_existent_spec.yaml", "--output", "./out"]
 
     with patch.object(sys, "argv", test_args):
         with patch.object(Path, "exists", return_value=False):
             with pytest.raises(SystemExit) as exit_wrapper:
-                run.main()
+                cli.main()
 
             assert exit_wrapper.value.code == 1
 
@@ -25,16 +25,16 @@ def test_main_exits_when_output_dir_exists_without_force(tmp_path):
     output_dir = tmp_path / "existing_output_dir"
     output_dir.mkdir()
 
-    test_args = ["run.py", "--spec", str(spec_path), "--output", str(output_dir)]
+    test_args = ["cli.py", "--spec", str(spec_path), "--output", str(output_dir)]
 
     with patch.object(sys, "argv", test_args):
         with pytest.raises(SystemExit) as exit_wrapper:
-            run.main()
+            cli.main()
 
         assert exit_wrapper.value.code == 1
 
 
-@patch("app.run.Generator")
+@patch("app.cli.Generator")
 def test_main_success_flow_with_force_override(mock_generator_class, tmp_path):
     spec_path = tmp_path / "spec.yaml"
     spec_path.touch()
@@ -43,7 +43,7 @@ def test_main_success_flow_with_force_override(mock_generator_class, tmp_path):
     output_dir.mkdir()
 
     test_args = [
-        "run.py",
+        "cli.py",
         "--spec",
         str(spec_path),
         "--output",
@@ -59,7 +59,7 @@ def test_main_success_flow_with_force_override(mock_generator_class, tmp_path):
     mock_generator_class.return_value = mock_instance
 
     with patch.object(sys, "argv", test_args):
-        run.main()
+        cli.main()
 
     mock_generator_class.assert_called_once_with(Path(spec_path))
     mock_instance.load_spec.assert_called_once()

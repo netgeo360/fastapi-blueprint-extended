@@ -258,6 +258,11 @@ class Generator:
             docker_subnet=spec.makefile.docker_subnet,
         )
 
+    def render_conftest_file(self, spec: ProjectSpec) -> str:
+        """Renders the root conftest.py used by pytest."""
+        template = self.env.get_template("conftest.py.jinja2")
+        return template.render()
+
     def write(self, path: Path, content: str) -> None:
         path.write_text(content, encoding="utf-8")
         self.created.append(path)
@@ -278,8 +283,7 @@ class Generator:
         self.write(config_dir / ".gitignore", "")
         self.write(routers_dir / "__init__.py", "")
         self.write(tests_dir / "__init__.py", "")
-        self.write(output / "conftest.py", "import pytest\n")
-
+        self.write(output / "conftest.py", self.render_conftest_file(spec))
         self.write(app_dir / "app.py", self.render_app(spec))
         self.write(app_dir / "schemas.py", self.render_schemas(schemas_spec))
 

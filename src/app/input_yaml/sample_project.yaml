@@ -1,6 +1,6 @@
-# ── fastapi-blueprint input spec ────────────────────────────────────────────
+# ── fastapi-blueprint-extended input spec ────────────────────────────────────────────
 # This YAML file defines your FastAPI project.
-# Run: fastapi-blueprint generate --spec project.yaml --output ./my_project
+# Run: fastapi-blueprint-extended generate --spec project.yaml --output ./my_project
 
 project:
   name: "task-manager"
@@ -19,7 +19,7 @@ project:
 
 entrypoint:  
 
- # git_repo_url: https://github.com/repo/repo.git
+  git_repo_url: https://github.com/netgeo360/fastapi-blueprint-extended
   app_port: 8000
   gunicorn_workers: 5
   app_module: "app:app"
@@ -205,7 +205,7 @@ docker_nginx:
 
 req_cnf:
   sans_ips:
-    - "10.0.0.100"
+    - "10.0.30.133"
   sans_dns:
     - "task.manager.localhost"
 
