@@ -1,0 +1,12 @@
+import sys
+from pathlib import Path
+
+import pytest
+
+
+sys.path.append(str(Path(__file__).parent / "{{ app_dir | default('app') }}"))
+
+
+@pytest.fixture
+def anyio_backend():
+    return "{{ anyio_backend | default('asyncio') }}"
