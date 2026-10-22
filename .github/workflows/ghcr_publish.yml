@@ -1,0 +1,51 @@
+name: Publish to GHCR
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 4-create-docker-image-and-push-it-to-ghcr
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set image name and tag
+        id: meta
+        shell: bash
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_prod" >> $GITHUB_OUTPUT
+            echo "tag=prod" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref_name }}" = "develop" ]; then
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_dev" >> $GITHUB_OUTPUT
+            echo "tag=dev" >> $GITHUB_OUTPUT
+          else
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image }}:latest
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}

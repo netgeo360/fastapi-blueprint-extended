@@ -1,7 +1,7 @@
 {
   "branches": ["main", "develop"],
   "plugins": [
-    "@semantic-release/commit-parser",
+    "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     [
       "@semantic-release/changelog",
