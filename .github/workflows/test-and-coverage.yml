@@ -2,9 +2,9 @@ name: Test and Code Coverage
 
 on:
   push:
-    branches: [ main, master, develop, 4-create-docker-image-and-push-it-to-ghcr ]
+    branches: [ main, master, develop ]
   pull_request:
-    branches: [ main, master, develop,  4-create-docker-image-and-push-it-to-ghcr ]
+    branches: [ main, master, develop ]
 
 permissions:
   pull-requests: write
