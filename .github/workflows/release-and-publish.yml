@@ -1,0 +1,96 @@
+name: Semantic Release + GHCR Publish
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: write
+
+    outputs:
+      version: ${{ steps.semantic.outputs.version }}
+      image: ${{ steps.meta.outputs.image }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install semantic-release dependencies
+        run: |
+          npm install --save-dev \
+            semantic-release \
+            @semantic-release/commit-analyzer \
+            @semantic-release/release-notes-generator \
+            @semantic-release/changelog \
+            @semantic-release/git \
+            @semantic-release/github \
+            @semantic-release/exec
+
+      - name: Run semantic-release
+        id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+      - name: Set GHCR image prefix
+        id: meta
+        shell: bash
+        run: |
+          VERSION="${{ steps.semantic.outputs.version }}"
+          if [ -z "${VERSION}" ]; then
+            echo "No release created; skipping GHCR publish."
+            exit 0
+          fi
+
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_prod" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref_name }}" = "develop" ]; then
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_dev" >> "$GITHUB_OUTPUT"
+          else
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+  publish:
+    name: Publish GHCR image
+    needs: release
+    if: needs.release.outputs.version != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ needs.release.outputs.image }}_${{ needs.release.outputs.version }}
+            ${{ needs.release.outputs.image }}:latest
