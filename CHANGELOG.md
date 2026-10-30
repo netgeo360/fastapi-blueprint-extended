@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/netgeo360/fastapi-blueprint-extended/compare/v1.2.0...v1.3.0) (2026-10-30)
+
+
+### Features
+
+*  Minor change  on Workflows. [#4](https://github.com/netgeo360/fastapi-blueprint-extended/issues/4) ([f0b502d](https://github.com/netgeo360/fastapi-blueprint-extended/commit/f0b502d127ce0962ae551d0461151489f8a5c07b))
+
 # [1.3.0-dev.1](https://github.com/netgeo360/fastapi-blueprint-extended/compare/v1.2.0...v1.3.0-dev.1) (2026-10-30)
 
 
