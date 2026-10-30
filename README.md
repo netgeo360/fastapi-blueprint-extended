@@ -47,6 +47,21 @@ To use these targets, install `make` for your operating system:
 - [Windows](https://gnuwin32.sourceforge.net/packages/make.htm)
 - [macOS](https://formulae.brew.sh/formula/make)
 
+### Pull from GHCR
+
+You can also  pull from the GHCR pushed  image via the command
+
+```bash
+docker pull ghcr.io/netgeo360/fastapi-blueprint-extended_dev_<version>:latest
+```
+
+As an example a `Dockefile` can be created
+
+```bash
+FROM ghcr.io/netgeo360/fastapi-blueprint-extended_dev_<version>:latest
+```
+
+
 ## Development and contributions
 
 Contributions are welcome. Please open a pull request with your changes. Before submitting, format and lint the codebase using [Ruff](https://docs.astral.sh/ruff/):
