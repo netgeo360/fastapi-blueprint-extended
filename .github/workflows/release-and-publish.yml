@@ -6,9 +6,14 @@ on:
       - main
       - develop
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  packages: write
+
 jobs:
   release:
-    name: Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -18,7 +23,7 @@ jobs:
 
     outputs:
       version: ${{ steps.semantic.outputs.version }}
-      image: ${{ steps.meta.outputs.image }}
+      image: ${{ steps.image.outputs.image }}
 
     steps:
       - name: Checkout
@@ -48,28 +53,27 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
 
-      - name: Set GHCR image prefix
-        id: meta
+      - name: Set GHCR image tag
+        id: image
         shell: bash
         run: |
           VERSION="${{ steps.semantic.outputs.version }}"
           if [ -z "${VERSION}" ]; then
-            echo "No release created; skipping GHCR publish."
+            echo "image=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_prod" >> "$GITHUB_OUTPUT"
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_${VERSION}" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.ref_name }}" = "develop" ]; then
-            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_dev" >> "$GITHUB_OUTPUT"
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_dev_${VERSION}" >> "$GITHUB_OUTPUT"
           else
-            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_${VERSION}" >> "$GITHUB_OUTPUT"
           fi
 
   publish:
-    name: Publish GHCR image
     needs: release
-    if: needs.release.outputs.version != ''
+    if: needs.release.outputs.version != '' && needs.release.outputs.image != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -89,8 +93,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
+          context: .
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ needs.release.outputs.image }}_${{ needs.release.outputs.version }}
-            ${{ needs.release.outputs.image }}:latest
+            ${{ needs.release.outputs.image }}
