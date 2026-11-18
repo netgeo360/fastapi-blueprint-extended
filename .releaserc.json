@@ -12,6 +12,11 @@
     "@semantic-release/changelog",
     "@semantic-release/git",
     "@semantic-release/github",
-    "@semantic-release/exec"
+    [
+      "@semantic-release/exec",
+      {
+        "publishCmd": "echo \"version=${nextRelease.version}\" >> \"$GITHUB_OUTPUT\""
+      }
+    ]
   ]
 }
