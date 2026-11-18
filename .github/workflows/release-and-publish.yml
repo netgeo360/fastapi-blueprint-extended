@@ -24,6 +24,7 @@ jobs:
     outputs:
       version: ${{ steps.semantic.outputs.version }}
       image: ${{ steps.image.outputs.image }}
+      dev_image: ${{ steps.image.outputs.dev_image }}
 
     steps:
       - name: Checkout
@@ -53,22 +54,31 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
 
-      - name: Set GHCR image tag
+      - name: Set GHCR image tags
         id: image
         shell: bash
         run: |
           VERSION="${{ steps.semantic.outputs.version }}"
+
           if [ -z "${VERSION}" ]; then
             echo "image=" >> "$GITHUB_OUTPUT"
+            echo "dev_image=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended:${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "dev_image=" >> "$GITHUB_OUTPUT"
+
           elif [ "${{ github.ref_name }}" = "develop" ]; then
-            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_dev_${VERSION}" >> "$GITHUB_OUTPUT"
+            BASE_VERSION="${VERSION%%-*}"
+
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended:${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "dev_image=ghcr.io/netgeo360/fastapi-blueprint-extended:${BASE_VERSION}-dev" >> "$GITHUB_OUTPUT"
+
           else
-            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "image=" >> "$GITHUB_OUTPUT"
+            echo "dev_image=" >> "$GITHUB_OUTPUT"
           fi
 
   publish:
@@ -98,3 +108,4 @@ jobs:
           push: true
           tags: |
             ${{ needs.release.outputs.image }}
+            ${{ needs.release.outputs.dev_image }}
