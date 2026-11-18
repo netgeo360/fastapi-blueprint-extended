@@ -64,11 +64,11 @@ jobs:
           fi
 
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_prod_v.${VERSION}" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.ref_name }}" = "develop" ]; then
-            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_dev_${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_dev_v.${VERSION}" >> "$GITHUB_OUTPUT"
           else
-            echo "image=ghcr.io/netgeo360/fastapi-blueprint-extended_${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "image=" >> "$GITHUB_OUTPUT"
           fi
 
   publish:
