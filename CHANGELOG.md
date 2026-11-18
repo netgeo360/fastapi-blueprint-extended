@@ -4,6 +4,7 @@
 ### Features
 
 *  Minor change  on Workflows. [#4](https://github.com/netgeo360/fastapi-blueprint-extended/issues/4) ([f0b502d](https://github.com/netgeo360/fastapi-blueprint-extended/commit/f0b502d127ce0962ae551d0461151489f8a5c07b))
+* Minor changes in releaserc.json and release-and-publish workflow. [#4](https://github.com/netgeo360/fastapi-blueprint-extended/issues/4) ([c04a2ea](https://github.com/netgeo360/fastapi-blueprint-extended/commit/c04a2ead68365e0787a8e6c0e228e1abc5949682))
 
 # [1.3.0-dev.1](https://github.com/netgeo360/fastapi-blueprint-extended/compare/v1.2.0...v1.3.0-dev.1) (2026-10-30)
 
